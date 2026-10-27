@@ -1,0 +1,398 @@
+================================================================================
+                       GRABPIC - COMPLETE PIN-TO-PIN TECH STACK
+================================================================================
+Project Name      : GrabPic (AI-Powered Event Photo Retrieval Platform)
+Repository        : https://github.com/Chandu2411/GrabPic.git
+Architecture      : Microservices & Event-Driven Hybrid (Local + Cloud)
+Target Runtime    : Docker Engine / Docker Compose (WSL2 / Linux / Windows / macOS)
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. ARCHITECTURE OVERVIEW & SYSTEM TOPOLOGY
+2. FRONTEND TIER (UI / UX / CLIENT ENGINE)
+3. BACKEND TIER (API GATEWAY / ORCHESTRATION ENGINE)
+4. ARTIFICIAL INTELLIGENCE & COMPUTER VISION TIER
+5. STORAGE & VECTOR SEARCH PERSISTENCE ENGINE
+6. SECURITY, AUTHENTICATION & CRYPTOGRAPHY STACK
+7. MATHEMATICAL FORMULATIONS & CORE ALGORITHMS
+8. DEVOPS, CONTAINERIZATION & NETWORKING INFRASTRUCTURE
+9. EXHAUSTIVE PIN-TO-PIN DEPENDENCY & VERSION MANIFEST
+
+
+================================================================================
+1. ARCHITECTURE OVERVIEW & SYSTEM TOPOLOGY
+================================================================================
+GrabPic is engineered as a three-tier microservice architecture:
+
+[Browser Client]  <--- HTTP (5173/5175) --->  [Nginx / Vite Web Server]
+       |                                                 |
+       | REST (Multipart/JSON)                           | Proxies /api/*
+       v                                                 v
+[Spring Boot 3.3.5 Backend API Gateway (Port 8080)]
+       |
+       | Internal Bridge (HTTP REST / Multipart)
+       v
+[FastAPI AI Microservice (Port 8000 / 8005)]
+       |
+       +---> [InsightFace Buffalo_L (SCRFD Face Detector + ArcFace ResNet-50)]
+       +---> [FAISS (Facebook AI Similarity Search) - IndexFlatIP]
+       +---> [Local Storage Engine (Fast Disk Fallback)]
+       +---> [Azure Storage Blob Cloud Service (Optional Hybrid Cloud)]
+
+
+================================================================================
+2. FRONTEND TIER (UI / UX / CLIENT ENGINE)
+================================================================================
+Location: /grabpic-frontend
+
+- Core Language & Framework:
+  * JavaScript (ES2023+ / ECMAScript Modules)
+  * React.js (v19.2.4) - Modern declarative component-driven UI
+  * React DOM (v19.2.4) - Concurrent rendering and DOM reconciliation
+
+- Build Tool & Development Server:
+  * Vite (v8.0.1) - Lightning-fast Hot Module Replacement (HMR) and Rollup bundler
+  * @vitejs/plugin-react (v6.0.1) - Fast Refresh and JSX transformation
+
+- Client Routing:
+  * React Router DOM (v7.13.2) - Dynamic client-side routing:
+    - "/"               -> Home page (landing page, hero, feature breakdown)
+    - "/create"         -> Host Event Creation & Photo Upload workflow
+    - "/event/:eventId" -> Attendee Photo Discovery & Facial Search portal
+
+- Motion & Animations:
+  * Framer Motion (v12.38.0) - Hardware-accelerated transitions, spring physics,
+    fade-up entrances, staggered grid appearance, and modal pop animations
+
+- UI Primitives & Accessibility:
+  * @radix-ui/react-dialog (v1.1.15) - Accessible headless modal dialog with
+    focus trapping, screen reader support, keyboard esc listeners, and overlay
+
+- HTTP Client & Networking:
+  * Axios (v1.13.6) - Promise-based HTTP client for multipart form data,
+    chunked file uploads, backend REST communication, and error interception
+  * Native Fetch & Object URL API (window.URL.createObjectURL) - Client-side
+    instant photo downloads from signed binary blobs
+
+- Styling & Visual System:
+  * Vanilla CSS3 with Custom Properties (CSS Variables) - Zero CSS framework bloat
+  * Cyberpunk & Glassmorphism Design System:
+    - Color Space: Tailored HSL (#00f0ff neon cyan, #ff007f neon pink, #070913 void dark)
+    - Depth: Backdrop filters (blur(12px) - blur(20px)), translucent borders (rgba)
+    - Typography: Orbitron (Futuristic Display Font) + Inter (Clean Sans-Serif)
+    - Retro Buttons: Scanline hover animations, glowing borders, active press effects
+    - Skeleton Grid: Dynamic pulse shimmer placeholders during indexing & search
+  * clsx (v2.1.1) - Utility for conditional CSS class composition
+
+- Code Quality & Linting:
+  * ESLint (v9.39.4) with eslint-plugin-react-hooks (v7.0.1) and eslint-plugin-react-refresh (v0.5.2)
+  * Globals (v17.4.0) - Standard browser and Node execution global variables
+
+
+================================================================================
+3. BACKEND TIER (API GATEWAY / ORCHESTRATION ENGINE)
+================================================================================
+Location: /backend
+
+- Language & Virtual Machine:
+  * Java 21 (Eclipse Temurin OpenJDK LTS) - Modern Java runtime utilizing
+    enhanced switch expressions, text blocks, and virtual thread readiness
+
+- Core Framework & Starter:
+  * Spring Boot 3.3.5:
+    - spring-boot-starter-web: Embedded Apache Tomcat web server (HTTP/1.1)
+    - spring-boot-starter-test: JUnit 5, AssertJ, and Mockito test harness
+  * Spring Framework 6.1.14:
+    - RestTemplate: Synchronous HTTP client configured with MessageConverters
+    - Spring MVC: Annotation-driven REST controllers (@RestController, @PostMapping)
+    - Standard Servlet Multipart Resolver: Configured for large file payloads:
+      * spring.servlet.multipart.max-file-size = 200MB
+      * spring.servlet.multipart.max-request-size = 500MB
+
+- Build & Dependency Management:
+  * Apache Maven 3.9+ (Cleanly migrated from Gradle):
+    - backend/pom.xml - Centralized declarative XML configuration
+    - maven-compiler-plugin (Source/Target: Java 21)
+    - spring-boot-maven-plugin (Repackage fat JAR execution)
+    - Maven Wrapper (mvnw, mvnw.cmd, .mvn/wrapper/maven-wrapper.properties)
+
+- Boilerplate Reduction:
+  * Project Lombok (v1.18.34):
+    - @RequiredArgsConstructor, @Slf4j, @Data, @Getter, @Setter, @AllArgsConstructor
+
+- Cloud Storage SDK:
+  * Azure Storage Blob SDK for Java (v12.28.1):
+    - com.azure:azure-storage-blob - BlobServiceClient, BlobContainerClient,
+      and BlobSasPermission for generating signed time-bounded cloud URLs
+
+- Security & Cryptography:
+  * Java Cryptography Architecture (JCA):
+    - javax.crypto.Mac - HMAC-SHA256 digital signature computation
+    - javax.crypto.spec.SecretKeySpec - Symmetric key hashing
+    - java.util.Base64 (UrlEncoder without padding) - URL-safe signed tokens
+
+
+================================================================================
+4. ARTIFICIAL INTELLIGENCE & COMPUTER VISION TIER
+================================================================================
+Location: /ai-service
+
+- Language & Runtime:
+  * Python 3.11 (Debian Slim containerized environment)
+
+- Web Framework & ASGI Server:
+  * FastAPI (v0.135.2) - High-performance asynchronous REST framework
+  * Starlette (v1.0.0) - Lightweight ASGI toolkit powering FastAPI
+  * Uvicorn (v0.42.0) - Lightning-fast ASGI web server implementation
+  * Pydantic (v2.12.5) & Pydantic-Core (v2.41.5) - Strict schema validation
+  * python-multipart (v0.0.22) - Streaming multipart/form-data parser
+
+- Deep Learning & Face Recognition Models:
+  * InsightFace (v0.7.3):
+    - Model Zoo Package: "buffalo_l"
+    - Face Detection Backbone: SCRFD (Sample and Computation Redistribution)
+      Input Resolution: 640x640px
+      Landmark Detection: 5-point facial landmark alignment (eyes, nose, mouth corners)
+    - Face Recognition Backbone: ArcFace (Additive Angular Margin Loss)
+      Architecture: ResNet-50 / MobileFaceNet deep convolutional network
+      Output Dimension: 512-dimensional dense unit vector (float32)
+  * ONNX Runtime (v1.23.2):
+    - Open Neural Network Exchange runtime for optimized CPU execution
+    - Graph optimizations, SIMD vectorization, and thread pool scaling
+  * ONNX (v1.20.1) & FlatBuffers (v25.12.19) & Protobuf (v7.34.1)
+
+- Computer Vision & Matrix Processing:
+  * OpenCV Python (Headless v4.13.0.92) - Image decoding (cv2.imdecode),
+    resizing (cv2.resize), color space manipulation (BGR -> RGB)
+  * NumPy (v2.2.6) - High-performance N-dimensional array processing
+  * Pillow (PIL v12.1.1) - Image manipulation and format compatibility
+  * Scikit-Image (v0.25.2) & Scikit-Learn (v1.7.2) - Vector normalization
+
+
+================================================================================
+5. STORAGE & VECTOR SEARCH PERSISTENCE ENGINE
+================================================================================
+Location: In-Memory, Disk (/app/data/events), & Cloud Blob Storage
+
+- Vector Search & Indexing Engine:
+  * FAISS (Facebook AI Similarity Search - faiss-cpu v1.13.2):
+    - Index Type: faiss.IndexFlatIP (Exact Inner Product / Cosine Similarity)
+    - Vector Dimensionality: 512-D
+    - Metric: Inner Product (Dot Product) combined with L2 Normalization
+    - Persistence: faiss.write_index / faiss.read_index to disk (faces.index)
+
+- Event Metadata Store:
+  * JSON-based Document Cataloging (meta.json):
+    - Maps FAISS internal contiguous integer IDs to original image filenames
+    - Tracks event creation timestamps and expiration deadlines (expiresAt)
+    - Status tracking file (status.json: "processing" -> "completed" / "failed")
+
+- File Storage Systems (Dual-Write Pattern):
+  * Local Disk Storage:
+    - High-throughput direct file writes to /app/data/events/{eventId}/images/
+    - Streaming direct ZIP downloads via Python zipfile & io.BytesIO
+  * Azure Blob Storage (Cloud Hybrid Mode):
+    - azure-storage-blob (v12.28.1 Java / v12.24+ Python)
+    - Non-blocking background uploads (FastAPI BackgroundTasks)
+    - Container Structure: events/{eventId}/images/{uuid}.jpg
+
+
+================================================================================
+6. SECURITY, AUTHENTICATION & CRYPTOGRAPHY STACK
+================================================================================
+- HMAC-SHA256 Signed URLs (Stateless Zero-Trust Image Protection):
+  * Prevents unauthorized enumeration and scraping of private event images
+  * Signature Structure:
+    Payload   : {eventId}:{filename}:{expiryTimestamp}
+    Signature : HMAC-SHA256(Payload, secretKey)
+    Token     : Base64Url(Payload) + "." + Base64Url(Signature)
+  * Constant-Time Verification: hmac.compare_digest avoids timing attacks
+
+- Azure Shared Access Signatures (SAS):
+  * Delegated read-only access with strict 10-minute time bounds
+  * Custom Content-Disposition headers for direct browser downloads
+
+- Denial-of-Service (DoS) Defense & Rate Limiting:
+  * In-Memory Sliding-Window IP Rate Limiter:
+    - Limit: 60 image requests per minute per client IP address
+    - Purges expired timestamps dynamically on each invocation
+
+- Event Time-to-Live (TTL) Auto-Garbage Collection:
+  * Autonomous background scheduler runs every 10 minutes in FastAPI
+  * Compares current epoch timestamp against event expiration deadline
+  * Performs cascading deletion: Azure Blob Storage + Local Disk Storage
+
+- Strict Cross-Origin Resource Sharing (CORS):
+  * Regex-validated origin matching: ^https?://(localhost|127\.0\.0\.1)(:\d+)?$
+  * Supports OPTIONS preflight, HEAD, GET, and POST across all dev ports
+
+
+================================================================================
+7. MATHEMATICAL FORMULATIONS & CORE ALGORITHMS
+================================================================================
+1. L2 Vector Normalization:
+   For any 512-dimensional embedding vector v:
+   v_norm = v / ||v||_2 = v / sqrt(sum(v_i^2))
+   Ensures that Euclidean distance monotonically maps to Cosine Similarity.
+
+2. Cosine Similarity via Dot Product:
+   cosine_similarity(A, B) = A_norm . B_norm = sum(A_i * B_i)
+   Range: [-1.0, 1.0]. A score of 1.0 denotes identical facial geometry.
+
+3. Multi-Selfie Fusion (Max-Score Aggregation):
+   When an attendee uploads k selfies (k in [1, 4]) captured at various angles:
+   Fused_Score(Image_M) = MAX_{i=1..k} [ Search(Selfie_i, Image_M) ]
+   Mitigates variations in lighting, head pose, facial expressions, and eyewear.
+
+4. Dual-Tier Confidence Thresholding:
+   - Strong Match : Cosine Similarity >= 0.65 (High confidence / Primary matches)
+   - Weak Match   : 0.50 <= Cosine Similarity < 0.65 (Partial occlusion / Crowd)
+   - Discard      : Cosine Similarity < 0.50 (False positive rejection)
+
+
+================================================================================
+8. DEVOPS, CONTAINERIZATION & NETWORKING INFRASTRUCTURE
+================================================================================
+- Multi-Container Orchestration:
+  * Docker Compose v3.8:
+    - grabpic-frontend    : Ports 5173:80, 5175:80 (Nginx Alpine)
+    - grabpic-backend     : Port  8080:8080        (Temurin 21 JRE Alpine)
+    - grabpic-ai-service  : Ports 8000:8000, 8005:8000 (Python 3.11 Slim)
+    - Custom Bridge Network: grabpic-network
+
+- Multi-Stage Production Builds:
+  * Frontend:
+    Stage 1: node:20-alpine -> npm run build
+    Stage 2: nginx:alpine   -> Serves optimized dist/ with custom nginx.conf
+  * Backend:
+    Stage 1: maven:3.9.9-eclipse-temurin-21 -> mvn clean package -DskipTests
+    Stage 2: eclipse-temurin:21-jre-alpine  -> Runs minimized fat JAR
+  * AI Service:
+    Base   : python:3.11-slim
+    Installs: build-essential, cmake, libgl1, libglib2.0-0, g++
+    Runs   : uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+
+================================================================================
+9. EXHAUSTIVE PIN-TO-PIN DEPENDENCY & VERSION MANIFEST
+================================================================================
+
+--------------------------------------------------------------------------------
+A. BACKEND (pom.xml)
+--------------------------------------------------------------------------------
+Group ID                Artifact ID                 Version      Scope
+--------------------------------------------------------------------------------
+org.springframework.boot spring-boot-starter-web    3.3.5        Compile
+org.springframework.boot spring-boot-starter-test   3.3.5        Test
+com.azure                azure-storage-blob         12.28.1      Compile
+org.projectlombok        lombok                     1.18.34      Annotation Proc
+org.apache.maven.plugins maven-compiler-plugin      3.13.0       Build Plugin
+org.springframework.boot spring-boot-maven-plugin   3.3.5        Build Plugin
+Java SDK                 Eclipse Temurin OpenJDK    21 (LTS)     Runtime
+
+--------------------------------------------------------------------------------
+B. AI SERVICE (requirements.txt)
+--------------------------------------------------------------------------------
+Package Name            Version        Primary Functional Responsibility
+--------------------------------------------------------------------------------
+fastapi                 0.135.2        Asynchronous REST API Framework
+uvicorn                 0.42.0         ASGI High-Performance Server
+starlette               1.0.0          Underlying ASGI Web Toolkit
+pydantic                2.12.5         Data Validation and Settings Management
+pydantic_core           2.41.5         C-accelerated Pydantic Core Engine
+python-multipart        0.0.22         Multipart Form Data and File Upload Parser
+insightface             0.7.3          State-of-the-Art Deep Face Analysis Toolkit
+onnxruntime             1.23.2         Optimized Neural Network Inference Engine
+onnx                    1.20.1         Open Neural Network Exchange Specification
+faiss-cpu               1.13.2         Facebook AI Vector Similarity Search
+opencv-python           4.13.0.92      Open Source Computer Vision Library
+opencv-python-headless  4.13.0.92      Headless Server-Optimized OpenCV
+numpy                   2.2.6          Multidimensional Numerical Computing
+pillow                  12.1.1         Python Imaging Library (PIL Fork)
+scikit-learn            1.7.2          Machine Learning Vector Operations
+scikit-image            0.25.2         Image Processing in Python
+scipy                   1.15.3         Scientific and Numerical Algorithms
+azure-storage-blob      Latest/12.28.1 Microsoft Azure Cloud Storage Client
+albumentations          2.0.8          Fast Image Augmentation Library
+albucore                0.0.24         High-performance image augmentations core
+protobuf                7.34.1         Protocol Buffers Serialization
+flatbuffers             25.12.19       Cross-Platform Serialization Memory Buffer
+requests                2.33.0         HTTP Client for External Communication
+urllib3                 2.6.3          HTTP Connection Pool Client
+certifi                 2026.2.25      Mozilla CA Certificate Bundle
+charset-normalizer      3.4.6          Encoding and Character Detection
+click                   8.3.1          Composable CLI Interface Framework
+Cython                  3.2.4          C-Extensions Compiler for Python
+humanfriendly           10.0           Human Readable Format Formatting
+coloredlogs             15.0.1         ANSI Colored Logging Output
+prettytable             3.17.0         ASCII Visual Table Formatter
+tqdm                    4.67.3         Fast Extensible Progress Bar
+sympy                   1.14.0         Symbolic Mathematics Engine
+matplotlib              3.10.8         Plotting and Data Visualization
+networkx                3.4.2          Complex Network and Graph Structures
+joblib                  1.5.3          Lightweight Pipelining and Multiprocessing
+threadpoolctl           3.6.0          Thread Pool Thread Limit Controller
+tifffile                2025.5.10      TIFF Format Image Processing
+ImageIO                 2.37.3         Flexible Image Input and Output Interface
+lazy-loader             0.5            Lazy Import Loader for Performance Optimization
+mpmath                  1.3.0          Arbitrary-precision floating-point arithmetic
+pyparsing               3.3.2          General-purpose parsing library
+python-dateutil         2.9.0.post0    Extensions to the standard Python datetime
+PyYAML                  6.0.3          YAML parser and emitter for Python
+six                     1.17.0         Python 2 and 3 compatibility utilities
+simsimd                 6.5.16         Hardware-accelerated Vector Similarity Math
+stringzilla             4.6.0          SIMD-accelerated String Processing
+typing_extensions       4.15.0         Backported standard type hints
+typing-inspection       0.4.2          Runtime type inspection utilities
+wcwidth                 0.6.0          Wide-character terminal string width
+anyio                   4.13.0         Asynchronous event loop compatibility
+annotated-doc           0.0.4          Type-hint docstring generator
+annotated-types         0.7.0          Reusable constraint types for annotations
+contourpy               1.3.2          Contour calculation engine
+cycler                  0.12.1         Composable style cycles for plotting
+easydict                1.13           Dictionary access via attribute dot notation
+exceptiongroup          1.3.1          Backport of PEP 654 Exception Groups
+fonttools               4.62.1         Tools to manipulate and optimize fonts
+h11                     0.16.0         Pure-Python HTTP/1.1 implementation
+idna                    3.11           Internationalized Domain Names in Applications
+kiwisolver              1.5.0          Fast implementation of the Cassowary algorithm
+ml_dtypes               0.5.4          Machine learning numeric data types
+
+--------------------------------------------------------------------------------
+C. FRONTEND (package.json)
+--------------------------------------------------------------------------------
+Package Name            Version        Role / Usage
+--------------------------------------------------------------------------------
+react                   ^19.2.4        Core UI Component Library
+react-dom               ^19.2.4        React Web Rendering Engine
+react-router-dom        ^7.13.2        Client-Side Routing and Navigation
+framer-motion           ^12.38.0       Motion, Springs & Physics Animations
+@radix-ui/react-dialog  ^1.1.15        Accessible Unstyled Dialog Primitive
+axios                   ^1.13.6        Promise-based REST API HTTP Client
+clsx                    ^2.1.1         Dynamic Class Name Utility
+vite                    ^8.0.1         Next-Gen Frontend Bundler & Dev Server
+@vitejs/plugin-react    ^6.0.1         React Babel/SWC Fast-Refresh Plugin
+eslint                  ^9.39.4        JavaScript / React Static Linter
+@eslint/js              ^9.39.4        ESLint Standard Rules Configuration
+eslint-plugin-react-hooks ^7.0.1       React Hook Rules Enforcer
+eslint-plugin-react-refresh ^0.5.2     HMR React Component Checker
+globals                 ^17.4.0        Standard Global Identifier Definitions
+@types/react            ^19.2.14       TypeScript Definitions for React
+@types/react-dom        ^19.2.3        TypeScript Definitions for React DOM
+
+--------------------------------------------------------------------------------
+D. DEVOPS & INFRASTRUCTURE
+--------------------------------------------------------------------------------
+Component               Version / Base Image       Configuration Details
+--------------------------------------------------------------------------------
+Docker Engine           20.10+ / 24+ / 28+         Container Virtualization
+Docker Compose          v3.8 Specification         Orchestration Specification
+Frontend Container      nginx:alpine               Reverse Proxy & Static Server
+Backend Container       eclipse-temurin:21-jre-alpine Multi-Stage Maven Build
+AI Service Container    python:3.11-slim           Debian-based ML Runtime
+Host OS Compatibility   Windows, Linux, macOS      WSL2 & Container Compatible
+
+================================================================================
+                         END OF TECH STACK DOCUMENTATION
+================================================================================

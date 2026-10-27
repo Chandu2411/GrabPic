@@ -10,6 +10,8 @@ __pycache__/
 .venv/
 venv/
 ENV/
+ai-service/data/
+ai-service/query_data/
 
 # Node & Frontend
 node_modules/
@@ -25,6 +27,11 @@ build/
 *.jar
 *.war
 !.mvn/wrapper/maven-wrapper.jar
+
+# Temporary & Download archives
+*.zip
+*.tar
+*.gz
 
 # IDE & OS
 .idea/

@@ -2,6 +2,12 @@
 
 > **Find yourself in hundreds of event photos in seconds using AI face recognition.**
 
+📚 **Documentation & Guides**:
+- 📌 **[Pin-to-Pin Tech Stack Inventory](TECH_STACK.txt)**
+- 🎓 **[End-to-End Technical Interview Guide](INTERVIEW_GUIDE.md)**
+- 🏗️ **[System Architecture Documentation](docs/ARCHITECTURE.md)**
+- 🔌 **[REST API Reference](docs/API.md)**
+
 ---
 
 ## 🌟 What is GrabPic?
@@ -214,6 +220,9 @@ GrabPic/
 │
 ├── samples/                  # Sample images for instant testing
 ├── docker-compose.yml        # Orchestration for all 3 microservices
+├── .env.example              # Environment variables template
+├── TECH_STACK.txt            # Exhaustive pin-to-pin technology manifest
+├── INTERVIEW_GUIDE.md        # Comprehensive end-to-end interview guide
 └── README.md
 ```
 
