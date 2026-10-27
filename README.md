@@ -146,7 +146,11 @@ npm run dev
 Requires Java 21:
 ```bash
 cd backend
-./gradlew bootRun
+# Linux/macOS
+./mvnw spring-boot:run
+# Windows
+.\mvnw.cmd spring-boot:run
+# Or with installed Maven: mvn spring-boot:run
 # Live at http://localhost:8080
 ```
 
@@ -195,7 +199,7 @@ GrabPic/
 │   │   ├── dto/             # SearchResponse & ImageMatch DTOs
 │   │   └── service/         # Business logic, Token signing, Event service
 │   ├── src/main/resources/  # application.properties
-│   ├── build.gradle
+│   ├── pom.xml              # Maven configuration
 │   └── Dockerfile
 │
 ├── grabpic-frontend/         # React 19 + Vite Frontend

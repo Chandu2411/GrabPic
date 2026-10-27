@@ -1,5 +1,6 @@
-.gradle
+target
 build
+.gradle
 bin
 .settings
 .classpath
@@ -9,9 +10,5 @@ bin
 .gitignore
 *.iml
 .idea
-Failed
-Get
-Run
-Task
 mise.toml
 HELP.md

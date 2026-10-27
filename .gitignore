@@ -17,13 +17,14 @@ dist/
 dist-ssr/
 *.local
 
-# Java & Gradle
+# Java, Maven & Gradle
+target/
 .gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
 *.class
 *.jar
 *.war
+!.mvn/wrapper/maven-wrapper.jar
 
 # IDE & OS
 .idea/

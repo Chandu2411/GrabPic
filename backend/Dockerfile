@@ -1,21 +1,19 @@
-FROM eclipse-temurin:21-jdk AS builder
+FROM maven:3.9.9-eclipse-temurin-21 AS builder
 
 WORKDIR /build
 
-COPY build.gradle settings.gradle gradlew ./
-COPY gradle ./gradle
-
-RUN ./gradlew dependencies --no-daemon
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
 
 COPY src ./src
-RUN ./gradlew bootJar --no-daemon
+RUN mvn clean package -DskipTests -B
 
 # Runtime image
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-COPY --from=builder /build/build/libs/*.jar app.jar
+COPY --from=builder /build/target/*.jar app.jar
 
 EXPOSE 8080
 
