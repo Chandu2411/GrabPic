@@ -4,6 +4,7 @@
 
 📚 **Documentation & Guides**:
 - 📌 **[Pin-to-Pin Tech Stack Inventory](TECH_STACK.txt)**
+- 📖 **[Complete Codebase Deep Dive & File Analysis](CODEBASE_EXPLANATION.md)**
 - 🎓 **[End-to-End Technical Interview Guide](INTERVIEW_GUIDE.md)**
 - 🏗️ **[System Architecture Documentation](docs/ARCHITECTURE.md)**
 - 🔌 **[REST API Reference](docs/API.md)**
@@ -222,6 +223,7 @@ GrabPic/
 ├── docker-compose.yml        # Orchestration for all 3 microservices
 ├── .env.example              # Environment variables template
 ├── TECH_STACK.txt            # Exhaustive pin-to-pin technology manifest
+├── CODEBASE_EXPLANATION.md   # Complete codebase deep dive & file-by-file notes
 ├── INTERVIEW_GUIDE.md        # Comprehensive end-to-end interview guide
 └── README.md
 ```
