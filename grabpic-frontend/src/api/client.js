@@ -23,8 +23,27 @@ export const searchImages = (eventId, formData, page = 1, size = 20) =>
   });
 
 
+export const getEventStatus = (eventId) => api.get(`/events/${eventId}/status`);
+
 export const downloadAllImages = (eventId) => {
   window.open(`${baseURL}/events/${eventId}/download`, "_blank");
+};
+
+export const downloadSingleImage = async (url, filename = "photo.jpg") => {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+  } catch {
+    window.open(url, "_blank");
+  }
 };
 
 export default api;

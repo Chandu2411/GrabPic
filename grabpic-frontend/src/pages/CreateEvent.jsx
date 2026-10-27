@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createEvent, uploadImages } from "../api/client";
+import { createEvent, uploadImages, getEventStatus } from "../api/client";
 import { motion, AnimatePresence } from "framer-motion";
 import PageWrapper from "../components/PageWrapper";
 import RetroButton from "../components/RetroButton";
@@ -16,24 +16,27 @@ export default function CreateEvent() {
   const [eventId, setEventId] = useState(null);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const shareLink = eventId
     ? `${window.location.origin}/events/${eventId}`
     : "";
 
   // Current step (1-based)
-  const currentStep = !eventId ? 1 : !uploaded && !loading ? 2 : uploaded ? 4 : 3;
+  const currentStep = !eventId ? 1 : !uploaded && !processing && !loading ? 2 : processing || loading ? 3 : 4;
 
   // ---- HANDLERS ----
   const handleCreateEvent = async () => {
     try {
       setLoading(true);
+      setErrorMsg("");
       const res = await createEvent();
       setEventId(res.data.eventId);
     } catch {
-      alert("Failed to create event");
+      setErrorMsg("Failed to create event. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -43,14 +46,43 @@ export default function CreateEvent() {
     if (!files.length) return;
     try {
       setLoading(true);
+      setErrorMsg("");
       const formData = new FormData();
       files.forEach((file) => formData.append("files", file));
       await uploadImages(eventId, formData);
-      setUploaded(true);
-    } catch {
-      alert("Upload failed");
-    } finally {
       setLoading(false);
+      setProcessing(true);
+
+      // Poll event status until face indexing completes
+      let attempts = 0;
+      const maxAttempts = 30; // ~45s
+      const poll = setInterval(async () => {
+        attempts++;
+        try {
+          const res = await getEventStatus(eventId);
+          const st = res.data?.status;
+          if (st === "completed" || attempts >= maxAttempts) {
+            clearInterval(poll);
+            setProcessing(false);
+            setUploaded(true);
+          } else if (st === "failed") {
+            clearInterval(poll);
+            setProcessing(false);
+            setUploaded(true);
+          }
+        } catch {
+          if (attempts >= maxAttempts) {
+            clearInterval(poll);
+            setProcessing(false);
+            setUploaded(true);
+          }
+        }
+      }, 1500);
+
+    } catch {
+      setLoading(false);
+      setProcessing(false);
+      setErrorMsg("Upload failed. Please try smaller files or check the server.");
     }
   };
 
@@ -107,6 +139,13 @@ export default function CreateEvent() {
         ))}
       </div>
 
+      {/* Error Feedback */}
+      {errorMsg && (
+        <div className="card mb-16 text-center" style={{ maxWidth: "440px", borderColor: "var(--accent-magenta)", color: "var(--accent-magenta)" }}>
+          <p style={{ fontSize: "13px" }}>{errorMsg}</p>
+        </div>
+      )}
+
       <AnimatePresence mode="wait">
         {/* STEP 1 — Initialize */}
         {currentStep === 1 && (
@@ -146,10 +185,10 @@ export default function CreateEvent() {
             <RetroButton
               variant="primary"
               onClick={handleUpload}
-              disabled={!files.length}
+              disabled={!files.length || loading}
               className="w-full"
             >
-              Upload & Process
+              {loading ? "Uploading..." : "Upload & Process"}
             </RetroButton>
           </motion.div>
         )}
@@ -175,7 +214,7 @@ export default function CreateEvent() {
                 animation: "text-flicker 2s infinite",
               }}
             >
-              Developing film...
+              Developing film & indexing faces...
             </p>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </motion.div>
@@ -195,7 +234,7 @@ export default function CreateEvent() {
               Share this link with attendees:
             </p>
 
-            <div className="copy-row">
+            <div className="copy-row mb-16">
               <input
                 className="input"
                 value={shareLink}
@@ -206,6 +245,14 @@ export default function CreateEvent() {
                 {copied ? "COPIED ✓" : "COPY"}
               </RetroButton>
             </div>
+
+            <RetroButton
+              variant="primary"
+              onClick={() => window.location.assign(`/events/${eventId}`)}
+              className="w-full"
+            >
+              Open Event Page →
+            </RetroButton>
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
-import { useState, useRef, useCallback } from "react";
-import { searchImages, downloadAllImages } from "../api/client";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { searchImages, downloadAllImages, getEventStatus } from "../api/client";
 import { motion } from "framer-motion";
 import PageWrapper from "../components/PageWrapper";
 import RetroButton from "../components/RetroButton";
@@ -22,10 +22,22 @@ export default function EventPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [eventStatus, setEventStatus] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [allImagesFlat, setAllImagesFlat] = useState([]);
 
   const observerRef = useRef();
+
+  // Check event indexing status on load
+  useEffect(() => {
+    if (eventId) {
+      getEventStatus(eventId)
+        .then((res) => setEventStatus(res.data?.status))
+        .catch(() => {});
+    }
+  }, [eventId]);
 
   // ---- FILE HANDLER (BUFFERED) ----
   const handleFiles = (fileList) => {
@@ -35,7 +47,6 @@ export default function EventPage() {
     setFiles((prev) => {
       const combined = [...prev, ...fileList];
       if (combined.length > 4) {
-        alert("Max 4 selfies allowed");
         return combined.slice(0, 4);
       }
       return combined;
@@ -46,18 +57,21 @@ export default function EventPage() {
     setAllImagesFlat([]);
     setPage(1);
     setHasMore(false);
+    setHasSearched(false);
+    setSearchError("");
   };
 
   // ---- SEARCH ----
   const performSearch = async (fileSet, pageNum) => {
     try {
       setLoading(true);
+      setSearchError("");
       const formData = new FormData();
       fileSet.forEach((f) => formData.append("files", f));
 
       const res = await searchImages(eventId, formData, pageNum, 12);
-      const strong = res.data.strongMatches;
-      const weak = res.data.weakMatches;
+      const strong = res.data?.strongMatches || [];
+      const weak = res.data?.weakMatches || [];
 
       if (pageNum === 1) {
         setImages({ strong, weak });
@@ -71,9 +85,12 @@ export default function EventPage() {
       }
 
       setPage(pageNum + 1);
-      setHasMore(res.data.hasMore);
-    } catch {
-      alert("Search failed");
+      setHasMore(!!res.data?.hasMore);
+      setHasSearched(true);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.error || "Search failed. Ensure your face is clearly visible and try again.";
+      setSearchError(msg);
+      setHasSearched(true);
     } finally {
       setLoading(false);
     }
@@ -125,11 +142,20 @@ export default function EventPage() {
         FIND YOUR PHOTOS
       </motion.h2>
 
+      {/* Status Warning if Still Indexing */}
+      {eventStatus === "processing" && (
+        <motion.div {...fadeUp} className="card w-full mb-24 text-center" style={{ borderColor: "var(--accent-cyan)", color: "var(--accent-cyan)" }}>
+          <p style={{ fontSize: "13px", letterSpacing: "0.05em" }}>
+            ⚡ Photos for this event are currently being indexed by AI. You can still search, but some photos may appear once indexing is complete.
+          </p>
+        </motion.div>
+      )}
+
       {/* Upload Zone */}
       <motion.div {...fadeUp} className="w-full mb-24">
         <DropZone
           label="Upload Your Selfie"
-          sublabel="Capture or select 2–4 photos for best results"
+          sublabel="Select 1–4 photos (2–4 photos recommended for best accuracy)"
           maxFiles={4}
           onFiles={handleFiles}
           accept="image/*"
@@ -150,19 +176,38 @@ export default function EventPage() {
             }}
           >
             {files.length === 1 
-              ? "Add 1–2 more photos for better results" 
-              : "Ready to search"}
+              ? "1 photo selected (adding 1–2 more can improve accuracy)" 
+              : `${files.length} photos ready for multi-angle matching`}
           </p>
         )}
         <RetroButton 
           variant="primary" 
           onClick={() => performSearch(files, 1)}
-          disabled={files.length < 2 || loading}
+          disabled={files.length < 1 || loading}
           style={{ minWidth: "200px" }}
         >
           {loading ? "Searching..." : "🔍 Search My Photos"}
         </RetroButton>
       </motion.div>
+
+      {/* Search Error */}
+      {searchError && (
+        <motion.div {...fadeUp} className="card w-full mb-24 text-center" style={{ borderColor: "var(--accent-magenta)", color: "var(--accent-magenta)" }}>
+          <p style={{ fontSize: "14px" }}>{searchError}</p>
+        </motion.div>
+      )}
+
+      {/* No Matches Found */}
+      {hasSearched && !loading && !hasResults && !searchError && (
+        <motion.div {...fadeUp} className="card w-full mb-32 text-center" style={{ maxWidth: "500px", margin: "0 auto 32px" }}>
+          <p style={{ color: "var(--accent-magenta)", fontSize: "16px", fontWeight: "bold", letterSpacing: "0.1em", marginBottom: "8px" }}>
+            NO MATCHES FOUND
+          </p>
+          <p className="text-muted" style={{ fontSize: "13px", lineHeight: "1.6" }}>
+            We could not find any photos matching your selfie in this event. Ensure your face is clearly visible, well-lit, and try uploading another selfie from a different angle.
+          </p>
+        </motion.div>
+      )}
 
       {/* Download All */}
       {hasResults && (

@@ -54,6 +54,15 @@ public class EventController {
   }
 
 
+  // -------------------------
+  // GET STATUS
+  // -------------------------
+  @GetMapping("/{eventId}/status")
+  public ResponseEntity<Map<String, Object>> getEventStatus(@PathVariable String eventId) {
+    Map<String, Object> status = eventService.getEventStatus(eventId);
+    return ResponseEntity.ok(status);
+  }
+
   @GetMapping("/{eventId}/download")
   public ResponseEntity<byte[]> downloadAll(@PathVariable String eventId) {
 

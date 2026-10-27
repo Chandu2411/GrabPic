@@ -1,199 +1,231 @@
-# GrabPic - Face Recognition Photo Sharing
+# 📸 GrabPic — AI-Powered Event Photo Finder
 
-A production-ready face recognition-based photo sharing application that allows event organizers to upload event photos and attendees to find their photos by uploading selfies.
+> **Find yourself in hundreds of event photos in seconds using AI face recognition.**
 
-## Overview
+---
 
-GrabPic uses AI-powered face matching to identify people in event photos. Event organizers upload photos from their events, and attendees can find all photos containing themselves by uploading 2-4 selfies.
+## 🌟 What is GrabPic?
 
-## Architecture
+Imagine you just attended a wedding, college fest, or marathon where the official photographer took **over 2,000 photos**. 
 
-GrabPic follows a three-tier microservices architecture:
+In the past, you'd have to scroll through endless Google Drive folders or albums looking for yourself.
+
+**GrabPic solves this completely:**
+1. **Event Organizers** upload the event photos in one go.
+2. **Attendees** open the event link, upload 1–4 selfies, and click **Search**.
+3. **AI** finds every single photo containing their face in seconds, categorized into high-confidence matches and probable matches, with one-click full-resolution downloading!
+
+---
+
+## ⚡ How It Works (In 3 Simple Steps)
 
 ```
-┌─────────────────┐      ┌──────────────────┐      ┌─────────────────┐
-│   FRONTEND      │─────>│     BACKEND      │─────>│    AI SERVICE   │
-│   React + Vite  │      │   Spring Boot    │      │  Python/FastAPI │
-└─────────────────┘      └──────────────────┘      └─────────────────┘
-         │                          │                          │
-         └──────────────────────────┴──────────────────────────┘
-                                    │
-                           ┌────────┴────────┐
-                           │   Azure Blob    │
-                           │    Storage      │
-                           └─────────────────┘
+  1. Organizer creates event      2. Attendees upload selfies      3. AI instantly finds photos!
+  ┌─────────────────────────┐    ┌─────────────────────────┐    ┌─────────────────────────┐
+  │ 📁 Upload event gallery │───>│ 🤳 Upload 1-4 selfies   │───>│ 🎯 View & download your │
+  │    (AI indexes faces)   │    │    (Multi-angle fusion) │    │    matched photos & ZIP │
+  └─────────────────────────┘    └─────────────────────────┘    └─────────────────────────┘
 ```
 
-### Services
+---
 
-| Service | Technology | Purpose |
-|---------|------------|---------|
-| **Frontend** | React 19, Vite | User interface for event creation, photo upload, and selfie search |
-| **Backend** | Spring Boot 3 (Java 21) | REST API, business logic, Azure Blob integration |
-| **AI Service** | Python 3.11, FastAPI | Face detection (InsightFace), embeddings (FAISS), similarity search |
+## 🧠 How the AI Works (Student & Beginner Friendly)
 
-## Features
+If you are a student or developer curious about the AI engineering behind GrabPic, here is how the magic happens:
 
-### Event Organizer
-- Create events with auto-generated UUID
-- Upload event photos (batch upload supported)
-- Photos are automatically processed for face recognition
-- Download all matched photos as a ZIP file
+### 1. Face Detection (`InsightFace`)
+When photos are uploaded, the AI detects all human faces in each image using deep learning neural networks.
 
-### Event Attendee
-- Search for photos using 2-4 selfies for better accuracy
-- Tiered results: "Your Photos" (strong matches) and "Maybe You" (weak matches)
-- Infinite scroll for browsing results
-- Click images to view full size with navigation
+### 2. Face Embeddings (512-Dimensional Vectors)
+The AI converts each detected face into a mathematical fingerprint: a list of **512 floating-point numbers** called an **embedding vector**. Even if lighting or facial expression changes, embeddings for the same person remain close in vector space.
 
-### Technical Features
-- **Multi-selfie fusion**: Upload multiple selfies to improve match accuracy
-- **Secure image access**: Token-based signed URLs with expiration
-- **Rate limiting**: 60 requests per minute per IP for image access
-- **Auto-expiry**: Events automatically delete after 10 hours
-- **Azure Blob Storage**: Images stored securely with SAS token access
-- **Background cleanup**: Automatic deletion of expired events
+### 3. Vector Similarity Search (`FAISS`)
+Instead of slowly comparing images pixel-by-pixel, GrabPic stores face vectors in **FAISS (Facebook AI Similarity Search)**. FAISS calculates the **Cosine Similarity** between your selfie's face vector and all the event photo face vectors in milliseconds.
 
-## Quick Start
+### 4. Multi-Selfie Fusion
+Uploading 2 to 4 selfies from slightly different angles (front, slight tilt, with/without glasses) creates multiple query vectors. GrabPic fuses the best scores across your selfies to give remarkably high match accuracy.
+
+### 5. Smart Match Categorization
+- 🟢 **Your Photos (Strong Matches)**: High similarity score ($\ge 0.65$) — almost certainly you.
+- 🟡 **Maybe You (Weak Matches)**: Moderate similarity score ($0.50$ to $0.65$) — sideways angles, crowd shots, or distant views.
+
+---
+
+## 🏗️ System Architecture
+
+GrabPic is engineered as a production-grade, 3-tier microservices architecture:
+
+```
+┌────────────────────────────────┐
+│   FRONTEND (React 19 + Vite)   │  Cyberpunk / Retro aesthetic, drag & drop,
+│   Port: 5173 / 5175            │  modal lightbox, instant photo download
+└────────────────────────────────┘
+                │
+                ▼ (REST API)
+┌────────────────────────────────┐
+│   BACKEND (Spring Boot 3 / J21)│  Event management, signed URL security,
+│   Port: 8080                   │  rate limiting, and Azure Blob integration
+└────────────────────────────────┘
+                │
+                ▼ (Internal Microservice)
+┌────────────────────────────────┐
+│   AI SERVICE (FastAPI / Py3.11)│  InsightFace (Buffalo_L), FAISS vector index,
+│   Port: 8000 / 8005            │  face detection, embedding extraction & search
+└────────────────────────────────┘
+```
+
+| Service | Technology | Role |
+| :--- | :--- | :--- |
+| **Frontend** | React 19, Vite, Framer Motion | Modern, responsive retro-tech UI |
+| **Backend** | Spring Boot 3.3 (Java 21) | RESTful API, orchestration, security tokens |
+| **AI Service** | FastAPI, Python 3.11, InsightFace, FAISS | Neural network inference & vector indexing |
+| **Storage** | Local disk or Azure Blob Storage | Temporary event image & index storage |
+
+---
+
+## 🚀 Quick Start (Run with Docker)
+
+The easiest way to run the entire application is with Docker Compose.
 
 ### Prerequisites
-- Docker and Docker Compose
-- Azure Storage Account (optional, for production)
-- 4GB+ RAM available for AI service
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
 
-### Running with Docker Compose
-
-1. Clone the repository:
+### 1. Clone the repository
 ```bash
-git clone <repository-url>
-cd grabpic
+git clone https://github.com/Chandu2411/GrabPic.git
+cd GrabPic
 ```
 
-2. Create a `.env` file:
-```bash
-AZURE_STORAGE_CONNECTION_STRING=your_connection_string_here
-AZURE_CONTAINER_NAME=events
-USE_BLOB_STORAGE=true
-IMAGE_TOKEN_SECRET=your-secret-key-change-in-production
+### 2. Configure environment (Optional)
+A default `.env` file is already included. You can adjust settings if needed:
+```env
+USE_BLOB_STORAGE=false
 EVENT_EXPIRY_HOURS=10
 AI_PUBLIC_BASE_URL=http://localhost:8000
+IMAGE_TOKEN_SECRET=your-secret-key-change-in-production
 ```
 
-3. Start all services:
+### 3. Start all services
 ```bash
-docker-compose up --build
+docker compose up -d --build
 ```
 
-4. Access the application:
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8080
-- AI Service: http://localhost:8000
+### 4. Open in your browser
+- 🌐 **Frontend**: [http://localhost:5173](http://localhost:5173) *(or [http://localhost:5175](http://localhost:5175))*
+- ⚙️ **Backend API**: [http://localhost:8080](http://localhost:8080)
+- 🤖 **AI Service Docs**: [http://localhost:8000/docs](http://localhost:8000/docs) *(or [http://localhost:8005/docs](http://localhost:8005/docs))*
 
-## API Documentation
+---
 
-See [API.md](docs/API.md) for complete API documentation.
+## 🧪 Try It Out (Testing Walkthrough)
 
-## Project Structure
+Sample images are provided inside the `samples/` directory so you can test immediately:
 
-```
-.
-├── grabpic-frontend/          # React frontend
-│   ├── src/
-│   │   ├── pages/            # Page components (Home, CreateEvent, EventPage)
-│   │   ├── api/              # API client
-│   │   └── ...
-│   └── Dockerfile
-├── backend/                   # Spring Boot backend
-│   ├── src/main/java/
-│   │   └── com/grabpic/backend/
-│   │       ├── controller/   # REST controllers
-│   │       ├── service/      # Business logic
-│   │       └── dto/          # Data transfer objects
-│   └── Dockerfile
-├── ai-service/               # Python AI service
-│   ├── app/
-│   │   ├── core/            # Face detection, embedding, indexing
-│   │   ├── services/        # Search and processing services
-│   │   └── main.py          # FastAPI application
-│   └── Dockerfile
-├── docker-compose.yml        # Docker orchestration
-└── docs/                     # Documentation
-```
+1. Open **[http://localhost:5173](http://localhost:5173)** and click **"Create Event"**.
+2. Click **"Create Event"** to generate an Event ID.
+3. In Step 2, drag & drop sample photos from `samples/` (e.g. `OIP.jpeg`, `roko.jpeg`, `OIP (1).jpeg`) and click **"Upload & Process"**.
+4. Once indexing finishes, copy the event share link or click **"Open Event Page →"**.
+5. On the attendee search page, upload `samples/roko.jpeg` as your selfie and click **"🔍 Search My Photos"**.
+6. **Result:** GrabPic instantly identifies all photos containing that face with match confidence scores! Click any photo to preview full size or download individually or as a ZIP.
 
-## Technology Stack
+---
 
-### Frontend
-- React 19.2.4 with React Router DOM
-- Vite 8.0.1 (build tool)
-- Axios (HTTP client)
-- Framer Motion (animations)
-- Radix UI (dialogs)
+## 💻 Local Development (Running Without Docker)
 
-### Backend
-- Spring Boot 3.3.5
-- Java 21
-- Azure Storage Blob SDK 12.28.1
-- Lombok (code generation)
+If you wish to run each service individually for development:
 
-### AI Service
-- FastAPI (Python web framework)
-- InsightFace (face detection and recognition)
-- FAISS (Facebook AI Similarity Search)
-- OpenCV (image processing)
-- ONNX Runtime (model inference)
-
-### Infrastructure
-- Docker & Docker Compose
-- Azure Blob Storage (optional)
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `AZURE_STORAGE_CONNECTION_STRING` | Azure Blob Storage connection | (none) |
-| `AZURE_CONTAINER_NAME` | Blob container name | `events` |
-| `USE_BLOB_STORAGE` | Enable Azure Blob Storage | `true` |
-| `IMAGE_TOKEN_SECRET` | Secret for signing image URLs | (required) |
-| `EVENT_EXPIRY_HOURS` | Event auto-deletion time | `10` |
-| `AI_PUBLIC_BASE_URL` | Public URL for AI service | (required) |
-
-## Development
-
-### Running Locally (without Docker)
-
-#### Frontend
+### 1. Frontend
 ```bash
 cd grabpic-frontend
 npm install
 npm run dev
+# Live at http://localhost:5173
 ```
 
-#### Backend
+### 2. Backend
+Requires Java 21:
 ```bash
 cd backend
 ./gradlew bootRun
+# Live at http://localhost:8080
 ```
 
-#### AI Service
+### 3. AI Service
+Requires Python 3.11+:
 ```bash
 cd ai-service
 pip install -r requirements.txt
-python -m app.main
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+# Live at http://localhost:8000
 ```
 
-## Deployment
+---
 
-See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for deployment instructions.
+## 📡 REST API Reference
 
-## Architecture Details
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/events` | Create a new event with auto-generated UUID |
+| `POST` | `/events/{id}/upload` | Upload photos to an event for AI indexing |
+| `GET` | `/events/{id}/status` | Check background indexing status (`processing`, `completed`) |
+| `POST` | `/events/{id}/search` | Search event photos using 1–4 selfies |
+| `GET` | `/events/{id}/download` | Download all event photos as a ZIP archive |
+| `GET` | `/images/{id}/images/{file}?token=...` | Securely fetch a signed image URL |
 
-See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture documentation.
+---
 
-## Security Considerations
+## 📂 Project Structure
 
-- Face data (embeddings) are stored temporarily and deleted with events
-- Images are served via time-limited signed URLs
-- Rate limiting prevents abuse
-- Events auto-expire to limit data retention
+```
+GrabPic/
+├── ai-service/               # Python AI Microservice
+│   ├── app/
+│   │   ├── core/            # InsightFace detector, FAISS indexer, matcher
+│   │   ├── services/        # Processing and multi-selfie fusion search
+│   │   ├── utils/           # Image resizing & preprocessing
+│   │   ├── config.py        # Settings & thresholds
+│   │   └── main.py          # FastAPI application & endpoints
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── backend/                  # Spring Boot Microservice
+│   ├── src/main/java/com/grabpic/backend/
+│   │   ├── config/          # CORS, RestTemplate, AI config properties
+│   │   ├── controller/      # REST API endpoints (EventController)
+│   │   ├── dto/             # SearchResponse & ImageMatch DTOs
+│   │   └── service/         # Business logic, Token signing, Event service
+│   ├── src/main/resources/  # application.properties
+│   ├── build.gradle
+│   └── Dockerfile
+│
+├── grabpic-frontend/         # React 19 + Vite Frontend
+│   ├── src/
+│   │   ├── api/             # Axios client & endpoints
+│   │   ├── components/      # DropZone, ImageModal, RetroButton, PageWrapper
+│   │   ├── pages/           # Home, CreateEvent, EventPage
+│   │   └── index.css        # Cyberpunk retro aesthetic design system
+│   ├── nginx.conf           # Production reverse-proxy config
+│   ├── Dockerfile
+│   └── package.json
+│
+├── samples/                  # Sample images for instant testing
+├── docker-compose.yml        # Orchestration for all 3 microservices
+└── README.md
+```
+
+---
+
+## 🛡️ Security & Privacy
+
+- **No Permanent Facial Data**: Face embeddings are held temporarily and deleted when the event expires.
+- **HMAC Signed URLs**: Images are served through tamper-proof, time-limited signed tokens.
+- **Auto-Expiry**: Events automatically delete after the configured duration (default: 10 hours).
+- **Dual Storage**: Works with local storage out-of-the-box, with seamless Azure Blob Storage support for production.
+
+---
+
+## 👨‍💻 Author
+
+Developed by **[Chandu2411](https://github.com/Chandu2411)**
+
+⭐ Star this repository if you find it helpful for your learning or projects!

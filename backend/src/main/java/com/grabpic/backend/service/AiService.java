@@ -102,6 +102,24 @@ public class AiService {
   }
 
   // -------------------------
+  // GET STATUS
+  // -------------------------
+  public Map<String, Object> getEventStatus(String eventId) {
+    try {
+      String url = String.format("%s/status/%s", trimSlash(aiProperties.getInternalBaseUrl()), eventId);
+      ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+          url,
+          HttpMethod.GET,
+          null,
+          new ParameterizedTypeReference<Map<String, Object>>() {});
+      return response.getBody() != null ? response.getBody() : Map.of("status", "unknown");
+    } catch (Exception e) {
+      log.error("Failed to fetch status for event {}", eventId, e);
+      return Map.of("status", "unknown");
+    }
+  }
+
+  // -------------------------
   // URL BUILDERS (FIXED)
   // -------------------------
   private String buildApiUrl(String endpoint, String eventId) {
@@ -180,7 +198,11 @@ public class AiService {
     }
 
     if (body.containsKey("error")) {
-      throw new RuntimeException("AI error: " + body.get("error"));
+      String errMsg = String.valueOf(body.get("error"));
+      if ("No faces detected".equalsIgnoreCase(errMsg) || errMsg.contains("No faces")) {
+        return new MatchBuckets(List.of(), List.of());
+      }
+      throw new RuntimeException("AI error: " + errMsg);
     }
 
     List<Map<String, Object>> strong = safeList(body.get("strong_matches"));

@@ -4,6 +4,7 @@ import com.grabpic.backend.dto.SearchResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,12 @@ public class EventService {
     return aiService.searchImages(eventId, files, page, size);
   }
 
+  // -------------------------
+  // GET EVENT STATUS
+  // -------------------------
+  public Map<String, Object> getEventStatus(String eventId) {
+    return aiService.getEventStatus(eventId);
+  }
 
   // -------------------------
   // VALIDATION

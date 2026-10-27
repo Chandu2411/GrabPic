@@ -33,9 +33,17 @@ app = FastAPI()
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5175",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5175",
+        "http://localhost:3000",
+        "http://localhost:8080",
+    ],
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -163,13 +171,20 @@ async def process_images(event_id: str, background_tasks: BackgroundTasks, files
             json.dump(meta_data, f)
 
     images_data = []
+    
+    images_dir = os.path.join(event_dir, "images")
+    os.makedirs(images_dir, exist_ok=True)
+    
     for file in files:
         filename = f"{uuid.uuid4()}.jpg"
         content = await file.read()
         
         images_data.append((filename, content))
         
-        # Dual-write: Upload to Azure Blob in background
+        # Dual-write: Always write to local storage for downloads & local serving; upload to Azure Blob if enabled
+        with open(os.path.join(images_dir, filename), "wb") as f:
+            f.write(content)
+
         if settings.USE_BLOB_STORAGE:
             background_tasks.add_task(upload_image_bytes, event_id, filename, content)
 
@@ -199,7 +214,7 @@ async def get_processing_status(event_id: str):
 # -------------------------
 # API: Serve Image Securely
 # -------------------------
-@app.get("/images/{event_id}/images/{filename}")
+@app.api_route("/images/{event_id}/images/{filename}", methods=["GET", "HEAD"])
 async def get_image(request: Request, event_id: str, filename: str, token: str = None):
     # Rate limiting: 60 requests per minute per IP
     if is_rate_limited(request.client.host):
@@ -262,9 +277,28 @@ async def search_images(event_id: str, files: List[UploadFile] = File(...)):
 # -------------------------
 # API: Download Event Images
 # -------------------------
-# -------------------------
-# API: Download Event Images
-# -------------------------
+@app.get("/events/{event_id}/download")
+async def download_all_images(event_id: str):
+    event_dir = os.path.join(BASE_DATA_DIR, "events", event_id)
+    images_dir = os.path.join(event_dir, "images")
+    
+    if not os.path.exists(images_dir):
+        raise HTTPException(status_code=404, detail="No images found for this event")
+        
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for root, _, files in os.walk(images_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zip_file.write(file_path, arcname=file)
+                
+    zip_buffer.seek(0)
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={event_id}_photos.zip"}
+    )
+
 @app.get("/download/{blob_name:path}")
 async def download_image(blob_name: str):
     """

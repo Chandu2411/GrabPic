@@ -5,6 +5,7 @@ services:
     container_name: grabpic-ai-service
     ports:
       - "8000:8000"
+      - "8005:8000"
 
     volumes:
       - ai_data:/app/data
@@ -17,7 +18,7 @@ services:
       - EVENT_EXPIRY_HOURS=${EVENT_EXPIRY_HOURS:-3}
       - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
       - AZURE_CONTAINER_NAME=${AZURE_CONTAINER_NAME}
-      - USE_BLOB_STORAGE=${USE_BLOB_STORAGE}
+      - USE_BLOB_STORAGE=${USE_BLOB_STORAGE:-false}
     restart: unless-stopped
     mem_limit: 2g
     memswap_limit: 2g
@@ -36,12 +37,13 @@ services:
       - "8080:8080"
 
     environment:
+      - AI_INTERNAL_BASE_URL=http://ai-service:8000
       - AI_BASE_URL=http://ai-service:8000
       - AI_PUBLIC_BASE_URL=${AI_PUBLIC_BASE_URL:-http://localhost:8000}
       - IMAGE_TOKEN_SECRET=${IMAGE_TOKEN_SECRET:-my_super_secret_image_key_123}
       - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
       - AZURE_CONTAINER_NAME=${AZURE_CONTAINER_NAME}
-      - USE_BLOB_STORAGE=true
+      - USE_BLOB_STORAGE=${USE_BLOB_STORAGE:-false}
     depends_on:
       ai-service:
         condition: service_healthy
@@ -58,6 +60,7 @@ services:
     container_name: grabpic-frontend
     ports:
       - "5173:80"
+      - "5175:80"
 
     depends_on:
       - backend

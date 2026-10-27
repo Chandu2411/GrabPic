@@ -45,9 +45,8 @@ class Settings:
     # -------------------------
     # STORAGE PATHS
     # -------------------------
-    # STORAGE PATHS
-    BASE_DATA_DIR = os.getenv("BASE_DATA_DIR", "/app/data")
-    QUERY_DIR = os.getenv("QUERY_DIR", "/app/query_data")
+    BASE_DATA_DIR = os.getenv("BASE_DATA_DIR", os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data")))
+    QUERY_DIR = os.getenv("QUERY_DIR", os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "query_data")))
 
     # -------------------------
     # SECURITY & EXPIRY

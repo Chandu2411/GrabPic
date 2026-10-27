@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import RetroButton from "./RetroButton";
+import { downloadSingleImage } from "../api/client";
 
 /**
  * ImageModal — Fullscreen lightbox with keyboard navigation.
@@ -48,6 +49,14 @@ export default function ImageModal({
       document.body.style.overflow = "";
     };
   }, [isOpen]);
+
+  const handleDownload = (e) => {
+    e.preventDefault();
+    if (!currentImage) return;
+    const url = getDownloadHref(currentImage);
+    const fname = `photo_${selectedIndex + 1}.jpg`;
+    downloadSingleImage(url, fname);
+  };
 
   return (
     <AnimatePresence>
@@ -111,13 +120,12 @@ export default function ImageModal({
 
             {/* Actions */}
             <div className="modal-actions">
-              <a
-                href={getDownloadHref(currentImage)}
-                download
-                className="btn btn--primary"
+              <RetroButton
+                variant="primary"
+                onClick={handleDownload}
               >
                 ↓ DOWNLOAD
-              </a>
+              </RetroButton>
             </div>
           </motion.div>
         </motion.div>

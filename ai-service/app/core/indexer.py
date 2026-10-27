@@ -12,7 +12,10 @@ class FaceIndexer:
         self.index_path = index_path
         self.meta_path = meta_path
 
-        os.makedirs("app/data", exist_ok=True)
+        if self.index_path:
+            os.makedirs(os.path.dirname(os.path.abspath(self.index_path)), exist_ok=True)
+        if self.meta_path:
+            os.makedirs(os.path.dirname(os.path.abspath(self.meta_path)), exist_ok=True)
 
         # Initialize FAISS index (cosine similarity)
         self.index = faiss.IndexFlatIP(dim)
